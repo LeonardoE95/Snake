@@ -18,6 +18,8 @@ sudo apt-get install libsdl2-dev
 sudo apt-get install libsdl2-ttf-dev
 ```
 
+Other than that, you need to specify the path to a .ttf file in one of the parameters at the top of the code.
+
 Also, this probably does not work on Windows (OS) because of gettimeofday() used for managing delays.
 
 # Compilation
