@@ -59,6 +59,7 @@
 
 // RGBA, Red Green Blue Alpha
 #define BACKGROUND_COLOR 0x000000FF
+#define GRID_COLOR       0xFFFFFFFF
 #define SNAKE_COLOR      0xEE72F100
 #define FOOD_COLOR       0x77B28C00
 #define OBSTACLE_COLOR   0x964B0000
@@ -136,16 +137,17 @@ void eat_food(Game *game, Food *f);
 void init_food(Game *game);
 int allow_refresh_food(void);
 Food *check_for_food(Game *game);
-void update_food(SDL_Renderer *renderer, Game *game);
+void update_food(Game *game);
+
+int check_for_obstacles(Game *game);
 
 void update_game_speed(Game *game);
 
-int check_for_obstacles(Game *game);
+void update_game_state(Game *game);
 
 void render_game(SDL_Renderer *renderer, Game *game, TTF_Font *font);
 void render_snake(SDL_Renderer *renderer, Game *game);
 void render_food(SDL_Renderer *renderer, Game *game);
-void remove_food(SDL_Renderer *renderer, Game *game);
 void render_obstacles(SDL_Renderer *renderer, Game *game);
 void render_game_score(SDL_Renderer *renderer, Game *game, TTF_Font *font);
 void render_board(SDL_Renderer *renderer);
@@ -397,12 +399,10 @@ Food *check_for_food(Game *game) {
   return NULL;
 }
 
-void update_food(SDL_Renderer *renderer, Game *game) {
+void update_food(Game *game) {
   if (allow_refresh_food()) {
-    remove_food(renderer, game);
     init_food(game);
   }
-
   return;
 }
 
@@ -441,6 +441,17 @@ int check_for_obstacles(Game *game) {
   return 0;
 }
 
+void update_game_state(Game *game) {
+  move_snake(&GAME, GAME.snake.dir, 0);
+  GAME.quit |= check_for_obstacles(&GAME);    
+  Food *f = check_for_food(&GAME);
+  if (f) {
+    eat_food(&GAME, f);
+    update_game_speed(&GAME);
+  }
+  update_food(&GAME);  
+}
+
 // -------------------
 // RENDER FUNCTIONS
 
@@ -448,7 +459,7 @@ void render_game(SDL_Renderer *renderer, Game *game, TTF_Font *font) {
   scc(SDL_SetRenderDrawColor(renderer, HEX_COLOR(BACKGROUND_COLOR)));
   SDL_RenderClear(renderer);
   
-  render_board(renderer);
+  // render_board(renderer);
   render_snake(renderer, game);
   render_food(renderer, game);
   render_obstacles(renderer, game);
@@ -458,7 +469,7 @@ void render_game(SDL_Renderer *renderer, Game *game, TTF_Font *font) {
 }
 
 void render_board(SDL_Renderer *renderer) {
-  scc(SDL_SetRenderDrawColor(renderer, HEX_COLOR(BACKGROUND_COLOR)));
+  scc(SDL_SetRenderDrawColor(renderer, HEX_COLOR(GRID_COLOR)));
   
   for(int x = 0; x < BOARD_WIDTH; x++) {
     SDL_RenderDrawLine(renderer,
@@ -518,27 +529,6 @@ void render_food(SDL_Renderer *renderer, Game *game) {
     };
 
     scc(SDL_RenderFillRect(renderer, &rect));
-  }
-}
-
-void remove_food(SDL_Renderer *renderer, Game *game) {
-  scc(SDL_SetRenderDrawColor(renderer, HEX_COLOR(BACKGROUND_COLOR)));
-
-  for (int i = 0; i < FOODS_COUNT; i++) {
-    Food f = game->food[i];
-
-    if (!f.score)
-      continue;
-
-    SDL_Rect rect = {
-      (int) floorf(f.pos.x * CELL_WIDTH),
-      (int) floorf(f.pos.y * CELL_HEIGHT),
-      (int) floorf(CELL_WIDTH),
-      (int) floorf(CELL_HEIGHT),
-    };
-
-    scc(SDL_RenderFillRect(renderer, &rect));
-
   }
 }
 
@@ -656,19 +646,10 @@ int main(void) {
 	}	  
 	}
       }
-      
     }
 
     // main logic loop
-    move_snake(&GAME, GAME.snake.dir, 0);    
-    GAME.quit |= check_for_obstacles(&GAME);    
-    Food *f = check_for_food(&GAME);
-    if (f) {
-      eat_food(&GAME, f);
-      update_game_speed(&GAME);
-    }
-    update_food(renderer, &GAME);
-
+    update_game_state(&GAME);
     // rendering stuff
     render_game(renderer, &GAME, font);
   }
