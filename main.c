@@ -151,6 +151,7 @@ void render_food(SDL_Renderer *renderer, Game *game);
 void render_obstacles(SDL_Renderer *renderer, Game *game);
 void render_game_score(SDL_Renderer *renderer, Game *game, TTF_Font *font);
 void render_board(SDL_Renderer *renderer);
+void render_square(SDL_Renderer *renderer, Pos pos, Uint8 r, Uint8 g, Uint8 b, Uint8 a);
 
 // -------------------
 // VARIABILI GLOBALI
@@ -160,6 +161,7 @@ Game GAME = {0};
 // -------------------
 // UTILS
 
+// Thanks Tsoding, once again :D
 void scc(int code) {
   if (code < 0) {
     printf("SDL error: %s\n", SDL_GetError());
@@ -473,62 +475,31 @@ void render_board(SDL_Renderer *renderer) {
   
   for(int x = 0; x < BOARD_WIDTH; x++) {
     SDL_RenderDrawLine(renderer,
-		       x * CELL_WIDTH,
-		       0,
-		       x * CELL_WIDTH,
-		       SCREEN_HEIGHT
+		       x * CELL_WIDTH, 0,             // starting (x_1, y_1)
+		       x * CELL_WIDTH, SCREEN_HEIGHT  // ending   (x_2, y_2)
 		       );
   }
 
   for(int y = 0; y < BOARD_HEIGHT; y++) {
     SDL_RenderDrawLine(renderer,
-		       0,
-		       y * CELL_HEIGHT,			 
-		       SCREEN_WIDTH,
-		       y * CELL_HEIGHT
+		       0, y * CELL_HEIGHT,	      // starting (x_1, y_1)
+		       SCREEN_WIDTH, y * CELL_HEIGHT  // ending   (x_2, y_2)
 		       );
   }
 }
 
 void render_snake(SDL_Renderer *renderer, Game *game) {
-  scc(SDL_SetRenderDrawColor(renderer, HEX_COLOR(SNAKE_COLOR)));
-  
-  Snake *snake = &game->snake;
-
-  for (int i = snake->length - 1; i >= 0; i--) {
-    Pos p = snake->body[i];
-    
-    SDL_Rect rect = {
-      (int) floorf(p.x * CELL_WIDTH),
-      (int) floorf(p.y * CELL_HEIGHT),
-      (int) floorf(CELL_WIDTH),
-      (int) floorf(CELL_HEIGHT)
-    };
-
-    scc(SDL_RenderFillRect(renderer, &rect));
+  for (int i = game->snake.length - 1; i >= 0; i--) {
+    render_square(renderer, game->snake.body[i], HEX_COLOR(SNAKE_COLOR));
   }
-
-  return;
 }
 
 void render_food(SDL_Renderer *renderer, Game *game) {
-  scc(SDL_SetRenderDrawColor(renderer, HEX_COLOR(FOOD_COLOR)));
-
   for (int i = 0; i < FOODS_COUNT; i++) {
-    Food f = game->food[i];
-
-    if (f.score == 0) {
-      continue;
+    if (game->food[i].score == 0) {
+      continue; // Skip foods that have already been eaten
     }
-
-    SDL_Rect rect = {
-      (int) floorf(f.pos.x * CELL_WIDTH),
-      (int) floorf(f.pos.y * CELL_HEIGHT),
-      (int) floorf(CELL_WIDTH),
-      (int) floorf(CELL_HEIGHT),
-    };
-
-    scc(SDL_RenderFillRect(renderer, &rect));
+    render_square(renderer, game->food[i].pos, HEX_COLOR(FOOD_COLOR));
   }
 }
 
@@ -538,17 +509,11 @@ void render_obstacles(SDL_Renderer *renderer, Game *game) {
   for (int i = 0; i < OBSTACLES_COUNT; i++) {
     Obstacle ob = game->obs[i];
 
-    if (ob.pos.x == 0 && ob.pos.y == 0)
+    if (!ob.init)
+      // do not render Uninitialized obstacles 
       continue;
 
-    SDL_Rect rect = {
-      (int) floorf(ob.pos.x * CELL_WIDTH),
-      (int) floorf(ob.pos.y * CELL_HEIGHT),
-      (int) floorf(CELL_WIDTH),
-      (int) floorf(CELL_HEIGHT),
-    };
-
-    scc(SDL_RenderFillRect(renderer, &rect));
+    render_square(renderer, ob.pos, HEX_COLOR(OBSTACLE_COLOR));
   }    
 }
 
@@ -592,6 +557,22 @@ void render_game_score(SDL_Renderer *renderer, Game *game, TTF_Font *font) {
   
 }
 
+/*
+  Draws a square in the grid at position (pos.x, pos.y)
+  with the specified color.
+*/
+void render_square(SDL_Renderer *renderer, Pos pos, Uint8 r, Uint8 g, Uint8 b, Uint8 a) {
+  scc(SDL_SetRenderDrawColor(renderer, r, g, b, a));
+  
+  SDL_Rect rect = {
+    (int) floorf(pos.x * CELL_WIDTH),
+    (int) floorf(pos.y * CELL_HEIGHT),
+    (int) floorf(CELL_WIDTH),
+    (int) floorf(CELL_HEIGHT),
+  };
+
+  scc(SDL_RenderFillRect(renderer, &rect));
+}
 
 // -------------------
 
