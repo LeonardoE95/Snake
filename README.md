@@ -1,5 +1,5 @@
 # Snake
-Bad implementation of snake in C using SDL2 and SDL2_TTF made mainly for educational purposes. The playlist in which I write all of this code (discussed in italian) can be found here: !TBD!
+Bad implementation of snake in C using SDL2 and SDL2_TTF made mainly for educational purposes. The playlist in which I write all of this code (discussed in italian) can be found here: [Snake in C](https://youtube.com/playlist?list=PLYLjKimBhcxHOOgGdbDBokN96KBMZGzJx).
 
 # Dependencies
 The only dependencies are SDL2 and SDL2_TTF.
@@ -18,7 +18,7 @@ sudo apt-get install libsdl2-dev
 sudo apt-get install libsdl2-ttf-dev
 ```
 
-Other than that, you need to specify the path to a .ttf file in one of the parameters at the top of the code.
+Other than that, you need to specify the path to a .ttf file in one of the parameters at the top of the code called FONT_PATH.
 
 Also, this probably does not work on Windows (OS) because of gettimeofday() used for managing delays.
 
